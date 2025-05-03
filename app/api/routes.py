@@ -1,0 +1,93 @@
+# app/api/routes.py
+from flask import Blueprint, request, jsonify
+import crochet
+from twisted.internet import reactor
+from scrapy.crawler import CrawlerRunner
+from scrapy import signals
+from scrapy.signalmanager import dispatcher
+
+from app.scrapers.content_spider import ContentSpider
+from app.api.validators import validate_scrape_request
+
+# Create a Blueprint for the API routes
+api_bp = Blueprint('api', __name__, url_prefix='/api')
+
+@api_bp.route('/scrape', methods=['POST'])
+def scrape_url():
+    """Endpoint to scrape content from a URL"""
+    data = request.get_json()
+    
+    # Validate request data
+    validation_result = validate_scrape_request(data)
+    if validation_result:
+        return jsonify({'error': validation_result}), 400
+    
+    url = data['url']
+    config = data.get('config', {})
+    output = []
+    
+    @crochet.run_in_reactor
+    def run_spider():
+        """Run the scraper spider in the background"""
+        # Create the crawler
+        runner = CrawlerRunner()
+        
+        def crawler_results(item):
+            output.append(item)
+        
+        # Connect the signal to capture the scraped items
+        dispatcher.connect(crawler_results, signal=signals.item_scraped)
+        
+        # Run the spider
+        deferred = runner.crawl(ContentSpider, url=url, config=config)
+        return deferred
+    
+    # Run the spider
+    run_spider()
+    
+    # Return the scraped data
+    return jsonify({
+        'success': True,
+        'data': output[0] if output else {'error': 'Failed to scrape content'}
+    })
+
+@api_bp.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({'status': 'ok'})
+
+# API documentation endpoint
+@api_bp.route('/', methods=['GET'])
+def api_docs():
+    """API documentation endpoint"""
+    return jsonify({
+        'name': 'Content Scraper API',
+        'version': '1.0',
+        'endpoints': [
+            {
+                'path': '/api/scrape',
+                'method': 'POST',
+                'description': 'Scrape clean content from a URL',
+                'body': {
+                    'url': 'The URL to scrape',
+                    'config': {
+                        'title_selector': 'CSS selector for the title element',
+                        'content_selector': 'CSS selector for the main content container',
+                        'paragraph_selector': 'CSS selector for paragraphs within the content',
+                        'extract_metadata': 'Boolean to extract metadata from meta tags',
+                        'extract_images': 'Boolean to extract images',
+                        'image_selector': 'CSS selector for images to extract'
+                    }
+                },
+                'example': {
+                    'url': 'https://example.com/article',
+                    'config': {
+                        'title_selector': 'h1.article-title',
+                        'content_selector': 'div.article-body',
+                        'extract_metadata': True,
+                        'extract_images': True
+                    }
+                }
+            }
+        ]
+    })

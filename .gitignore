@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# Docker
+.dockerignore
+
+# Scrapy stuff
+.scrapy
+
+# Log files
+*.log
+
+# Environment variables
+.env
+.env.*
