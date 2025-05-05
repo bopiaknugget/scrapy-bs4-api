@@ -120,7 +120,7 @@ def api_docs():
                     }
                 },
                 'example': {
-                    'url': 'https://example.com/article',
+                    'url': ' https://bbc.com',
                     'config': {
                         'title_selector': 'h1.article-title',
                         'content_selector': 'div.article-body',
@@ -140,7 +140,7 @@ def test_scraper():
     
     # Simple test to see if requests and BeautifulSoup work
     try:
-        response = requests.get('https://example.com', 
+        response = requests.get('https://bbc.com', 
                                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
         
         # Check if response was successful
