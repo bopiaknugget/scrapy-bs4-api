@@ -97,7 +97,6 @@ def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'ok'})
 
-# API documentation endpoint
 @api_bp.route('/', methods=['GET'])
 def api_docs():
     """API documentation endpoint"""
