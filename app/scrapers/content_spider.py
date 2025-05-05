@@ -3,10 +3,12 @@ import scrapy
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import logging
+import traceback
 
 from app.scrapers.extractors import ContentExtractor
 
 class ContentSpider(scrapy.Spider):
+    """Spider for scraping content from a URL"""
     name = 'content_spider'
     
     def __init__(self, url=None, config=None, *args, **kwargs):
@@ -34,7 +36,8 @@ class ContentSpider(scrapy.Spider):
                     'Sec-Fetch-User': '?1',
                     'Upgrade-Insecure-Requests': '1',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                }
+                },
+                dont_filter=True
             )
     
     def parse(self, response):
@@ -78,7 +81,6 @@ class ContentSpider(scrapy.Spider):
             }
             
         except Exception as e:
-            import traceback
             self.logger.error(f"Error parsing response: {str(e)}")
             self.logger.error(traceback.format_exc())
             return {
